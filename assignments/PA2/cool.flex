@@ -122,7 +122,7 @@ ERROR_CHAR      .
 <INITIAL>{STR_FOOTER}   { BEGIN(STRING); }
 <STRING>{STR_FOOTER} {
     // all done
-    cool_yylval.symbol = inttable.add_string(&str[0]);
+    cool_yylval.symbol = stringtable.add_string(&str[0]);
     str.clear();
     BEGIN INITIAL;
     return (STR_CONST);
@@ -131,6 +131,7 @@ ERROR_CHAR      .
     str.clear();
     BEGIN INITIAL;
 }
+
 <STRING>\n  {
     // a lonely \n :)
     curr_lineno++;
@@ -209,11 +210,11 @@ ERROR_CHAR      .
     return (BOOL_CONST);
 }
 <INITIAL>{TYPEID}    {
-    cool_yylval.symbol = inttable.add_string(yytext);
+    cool_yylval.symbol = stringtable.add_string(yytext);
     return (TYPEID);
 }
 <INITIAL>{OBJECTID}    {
-    cool_yylval.symbol = inttable.add_string(yytext);
+    cool_yylval.symbol = stringtable.add_string(yytext);
     return (OBJECTID);
 }
 <INITIAL>{ASSIGN}    {
@@ -222,6 +223,7 @@ ERROR_CHAR      .
 <INITIAL>{LE}    {
     return (LE);
 }
+
 <COMMENT>{COMMENT_BEGIN} { comment_depth++;BEGIN COMMENT; }
 <INITIAL>{COMMENT_BEGIN} { comment_depth++;BEGIN COMMENT; }
 <COMMENT>{COMMENT_CONTENT}   {
