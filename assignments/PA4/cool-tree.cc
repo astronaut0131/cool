@@ -432,7 +432,6 @@ void object_class::dump(ostream& stream, int n)
    dump_Symbol(stream, n+2, name);
 }
 
-
 // interfaces used by Bison
 Classes nil_Classes()
 {

@@ -3,7 +3,8 @@
 // and disclaimer of warranty provisions.
 //
 #include "copyright.h"
-
+#include <vector>
+#include <map>
 // The symbol table package.
 //
 // Create a symbol table with :
@@ -15,7 +16,76 @@
 #define _SYMTAB_H_
 
 #include "list.h"
+using std::vector;
+using std::map;
+template <class DAT>
+struct Result {
+    bool ok;
+    DAT dat;
+};
 
+template <class SYM,class DAT>
+class MySymbolTable {
+private:
+    vector<map<SYM,DAT>> tbl;
+public:
+    void fatal_error(char * msg)
+    {
+        cerr << msg << "\n";
+        exit(1);
+    }
+
+    void enterscope()
+    {
+        tbl.push_back({});
+    }
+
+    void exitscope()
+    {
+        if (tbl.empty()) {
+            fatal_error("exitscope: Can't remove scope from an empty symbol table.");
+        }
+        tbl.pop_back();
+    }
+
+    // Add an item to the symbol table.
+    void addid(SYM s, DAT i)
+    {
+        if (tbl.empty()) {
+            fatal_error("addid: Can't add a symbol without a scope.");
+        }
+        tbl.back()[s] = i;
+    }
+
+    // Lookup an item through all scopes of the symbol table.  If found
+    // it returns the associated information field, if not it returns
+    // NULL.
+
+    Result<DAT> lookup(SYM s)
+    {
+        for (auto it = tbl.rbegin(); it != tbl.rend(); it++) {
+            auto it2 = it->find(s);
+            if (it2 != it->end()) {
+                return Result<DAT>{true,it2->second};
+            }
+        }
+        return Result<DAT>{false,DAT{}};
+    }
+
+    // probe the symbol table.  Check the top scope (only) for the item
+    // 's'.  If found, return the information field.  If not return NULL.
+    Result<DAT> probe(SYM s)
+    {
+        if (tbl.empty()) {
+            fatal_error("probe: No scope in symbol table.");
+        }
+        auto it = tbl.back().find(s);
+        if (it == tbl.back().end()) {
+            return Result<DAT>{false,DAT{}};
+        }
+        return Result<DAT>{true,it->second};
+    }
+};
 //
 // SymtabEnty<SYM,DAT> defines the entry for a symbol table that associates
 //    symbols of type `SYM' with data of type `DAT *'.  
@@ -131,7 +201,7 @@ public:
        for(ScopeList *i = tbl; i != NULL; i=i->tl()) {
 	   for( Scope *j = i->hd(); j != NULL; j = j->tl()) {
 	       if (s == j->hd()->get_id()) {
-		   return (j->hd()->get_info());
+	           return (j->hd()->get_info());
 	       }
 	   }
        }

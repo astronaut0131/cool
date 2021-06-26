@@ -8,15 +8,18 @@
 //
 //////////////////////////////////////////////////////////
 
-
+#include <vector>
+#include <set>
 #include "tree.h"
 #include "cool-tree.handcode.h"
+#include "symtab.h"
 
-
+class ClassTable;
+using std::vector;
+using std::set;
 // define the class for phylum
 // define simple phylum - Program
 typedef class Program_class *Program;
-
 class Program_class : public tree_node {
 public:
    tree_node *copy()		 { return copy_Program(); }
@@ -35,7 +38,9 @@ class Class__class : public tree_node {
 public:
    tree_node *copy()		 { return copy_Class_(); }
    virtual Class_ copy_Class_() = 0;
-
+   virtual void semant(ClassTable* class_table) = 0;
+   virtual void add_method_declarations(ClassTable* class_table) = 0;
+   virtual void add_attr_declarations(ClassTable* class_table) = 0;
 #ifdef Class__EXTRAS
    Class__EXTRAS
 #endif
@@ -49,7 +54,9 @@ class Feature_class : public tree_node {
 public:
    tree_node *copy()		 { return copy_Feature(); }
    virtual Feature copy_Feature() = 0;
-
+   virtual void semant(ClassTable* class_table) = 0;
+   virtual void add_method_declarations(ClassTable* class_table) = 0;
+   virtual void add_attr_declarations(ClassTable* class_table) = 0;
 #ifdef Feature_EXTRAS
    Feature_EXTRAS
 #endif
@@ -63,7 +70,8 @@ class Formal_class : public tree_node {
 public:
    tree_node *copy()		 { return copy_Formal(); }
    virtual Formal copy_Formal() = 0;
-
+   virtual Symbol get_type_decl() = 0;
+   virtual Symbol get_name() = 0;
 #ifdef Formal_EXTRAS
    Formal_EXTRAS
 #endif
@@ -77,7 +85,7 @@ class Expression_class : public tree_node {
 public:
    tree_node *copy()		 { return copy_Expression(); }
    virtual Expression copy_Expression() = 0;
-
+   virtual Symbol semant(ClassTable* class_table) = 0;
 #ifdef Expression_EXTRAS
    Expression_EXTRAS
 #endif
@@ -91,7 +99,8 @@ class Case_class : public tree_node {
 public:
    tree_node *copy()		 { return copy_Case(); }
    virtual Case copy_Case() = 0;
-
+   virtual Symbol semant(ClassTable* class_table) = 0;
+   virtual Symbol get_type_decl() = 0;
 #ifdef Case_EXTRAS
    Case_EXTRAS
 #endif
@@ -161,7 +170,16 @@ public:
    }
    Class_ copy_Class_();
    void dump(ostream& stream, int n);
-
+   Symbol get_parent() { return parent; }
+   Symbol get_name() { return name; }
+   Features get_features() { return features; }
+   void semant(ClassTable* class_table) {
+       for (int i = features->first(); features->more(i); i = features->next(i)) {
+           features->nth(i)->semant(class_table);
+       }
+   }
+   void add_method_declarations(ClassTable* class_table);
+   void add_attr_declarations(ClassTable* class_table);
 #ifdef Class__SHARED_EXTRAS
    Class__SHARED_EXTRAS
 #endif
@@ -186,8 +204,10 @@ public:
       expr = a4;
    }
    Feature copy_Feature();
+   void semant(ClassTable* class_table);
    void dump(ostream& stream, int n);
-
+   void add_method_declarations(ClassTable* class_table);
+   void add_attr_declarations(ClassTable* class_table) {}
 #ifdef Feature_SHARED_EXTRAS
    Feature_SHARED_EXTRAS
 #endif
@@ -210,8 +230,10 @@ public:
       init = a3;
    }
    Feature copy_Feature();
+   void semant(ClassTable* class_table);
    void dump(ostream& stream, int n);
-
+   void add_method_declarations(ClassTable* class_table) {}
+   void add_attr_declarations(ClassTable* class_table);
 #ifdef Feature_SHARED_EXTRAS
    Feature_SHARED_EXTRAS
 #endif
@@ -232,8 +254,9 @@ public:
       type_decl = a2;
    }
    Formal copy_Formal();
+   Symbol get_type_decl() { return type_decl; }
+   Symbol get_name() { return name; }
    void dump(ostream& stream, int n);
-
 #ifdef Formal_SHARED_EXTRAS
    Formal_SHARED_EXTRAS
 #endif
@@ -257,7 +280,8 @@ public:
    }
    Case copy_Case();
    void dump(ostream& stream, int n);
-
+   Symbol get_type_decl() { return type_decl; }
+   Symbol semant(ClassTable* class_table);
 #ifdef Case_SHARED_EXTRAS
    Case_SHARED_EXTRAS
 #endif
@@ -279,7 +303,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -305,7 +329,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -329,7 +353,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -353,7 +377,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -375,7 +399,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -397,7 +421,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -417,7 +441,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -443,7 +467,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -465,7 +489,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -487,7 +511,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -509,7 +533,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -531,7 +555,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -551,7 +575,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -573,7 +597,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -595,7 +619,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -617,7 +641,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -637,7 +661,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -657,7 +681,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -677,7 +701,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -697,7 +721,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -717,7 +741,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -737,7 +761,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -755,7 +779,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
@@ -775,7 +799,7 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
-
+   Symbol semant(ClassTable* class_table);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
